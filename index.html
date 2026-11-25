@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Competencias · EPMV URP Plan 24</title>
+<style>
+  :root {
+    --teal:#005f73; --teal2:#0a9396; --teal3:#94d2bd;
+    --orange:#ee9b00; --orange2:#ca6702;
+    --bg:#f0f9fa;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); min-height:100vh; color:#1e293b; }
+
+  /* HEADER */
+  header {
+    background:linear-gradient(135deg,var(--teal) 0%,var(--teal2) 100%);
+    color:#fff; padding:20px 32px; display:flex; align-items:center; gap:16px;
+    box-shadow:0 2px 12px rgba(0,95,115,0.25);
+  }
+  header .logo { font-size:2rem; }
+  header h1 { font-size:1.25rem; font-weight:800; letter-spacing:-0.01em; }
+  header p { font-size:0.8rem; opacity:0.82; margin-top:2px; }
+  header .badge {
+    margin-left:auto; background:rgba(255,255,255,0.18);
+    border:1.5px solid rgba(255,255,255,0.35); border-radius:20px;
+    padding:5px 14px; font-size:0.75rem; font-weight:700; white-space:nowrap;
+  }
+
+  /* MAIN LAYOUT */
+  main { max-width:960px; margin:0 auto; padding:28px 20px 48px; }
+
+  /* SELECTOR CARD */
+  .selector-card {
+    background:#fff; border-radius:16px; padding:24px 28px;
+    box-shadow:0 2px 14px rgba(0,95,115,0.1); margin-bottom:24px;
+  }
+  .selector-card label {
+    display:block; font-size:0.78rem; font-weight:700;
+    color:var(--teal); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;
+  }
+  .search-wrap { position:relative; margin-bottom:12px; }
+  .search-wrap input {
+    width:100%; padding:11px 14px 11px 40px;
+    border:1.5px solid #d1d5db; border-radius:10px;
+    font-size:0.9rem; outline:none; transition:border .15s;
+    background:#fafafa;
+  }
+  .search-wrap input:focus { border-color:var(--teal2); background:#fff; }
+  .search-wrap .icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:1rem; pointer-events:none; }
+
+  select#asignaturaSelect {
+    width:100%; padding:11px 14px; border:1.5px solid #d1d5db;
+    border-radius:10px; font-size:0.88rem; outline:none;
+    background:#fff; cursor:pointer; transition:border .15s;
+    color:#1e293b;
+  }
+  select#asignaturaSelect:focus { border-color:var(--teal2); }
+  select#asignaturaSelect option[disabled] { color:#9ca3af; }
+
+  /* COUNTER */
+  .count-hint { font-size:0.75rem; color:#9ca3af; margin-top:6px; }
+
+  /* RESULT AREA */
+  #resultArea { display:none; animation:fadeIn .35s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* COURSE HEADER BANNER */
+  .course-banner {
+    background:linear-gradient(135deg,var(--teal),var(--teal2));
+    color:#fff; border-radius:14px; padding:18px 24px; margin-bottom:20px;
+    display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;
+  }
+  .course-banner .code-badge {
+    background:rgba(255,255,255,0.2); border:1.5px solid rgba(255,255,255,0.35);
+    border-radius:8px; padding:4px 12px; font-size:0.75rem; font-weight:800;
+    letter-spacing:.04em; white-space:nowrap; flex-shrink:0; align-self:flex-start;
+    margin-top:2px;
+  }
+  .course-banner .course-name { font-size:1.1rem; font-weight:800; line-height:1.3; }
+  .course-banner .course-area { font-size:0.78rem; opacity:0.82; margin-top:3px; }
+
+  /* GRID */
+  .grid-3 { display:grid; grid-template-columns:1fr; gap:16px; }
+  @media(min-width:640px) { .grid-3 { grid-template-columns:1fr 1fr; } }
+  @media(min-width:820px) {
+    .grid-top { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .card-full { grid-column:1/-1; }
+  }
+
+  /* INFO CARD */
+  .info-card {
+    background:#fff; border-radius:14px; padding:20px 22px;
+    box-shadow:0 2px 10px rgba(0,95,115,0.08);
+    border-top:4px solid var(--teal3);
+  }
+  .info-card.orange { border-top-color:var(--orange); }
+  .info-card.green  { border-top-color:#22c55e; }
+  .info-card.purple { border-top-color:#a855f7; }
+
+  .card-title {
+    display:flex; align-items:center; gap:8px;
+    font-size:0.72rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:.07em; color:var(--teal); margin-bottom:12px;
+  }
+  .card-title.orange { color:var(--orange2); }
+  .card-title.green  { color:#16a34a; }
+  .card-title.purple { color:#7c3aed; }
+  .card-title .dot {
+    width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0;
+  }
+
+  /* SUMILLA */
+  .sumilla-text {
+    font-size:0.875rem; line-height:1.75; color:#374151;
+    background:#f8fafc; border-radius:10px; padding:14px 16px;
+    border-left:3px solid var(--teal3);
+  }
+
+  /* COMPETENCIAS LISTS */
+  .comp-list { list-style:none; display:flex; flex-direction:column; gap:7px; }
+  .comp-list li {
+    display:flex; align-items:flex-start; gap:9px;
+    font-size:0.85rem; color:#374151; line-height:1.45;
+  }
+  .comp-list li .bullet {
+    width:20px; height:20px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.65rem; font-weight:800; flex-shrink:0; margin-top:1px;
+    color:#fff;
+  }
+  .bullet-teal  { background:var(--teal2); }
+  .bullet-orange{ background:var(--orange); }
+  .bullet-empty { color:#9ca3af; font-style:italic; }
+
+  /* LEVEL PILL */
+  .level-pill {
+    display:inline-block; font-size:0.7rem; font-weight:700;
+    padding:2px 9px; border-radius:20px; margin-left:6px;
+    vertical-align:middle;
+  }
+  .pill-1 { background:#dbeafe; color:#1d4ed8; }
+  .pill-2 { background:#d1fae5; color:#065f46; }
+  .pill-3 { background:#fef3c7; color:#92400e; }
+  .pill-4 { background:#ede9fe; color:#5b21b6; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align:center; padding:40px 20px; color:#9ca3af;
+    font-size:0.9rem;
+  }
+  .empty-state .icon { font-size:2.5rem; display:block; margin-bottom:10px; }
+
+  /* COPY BTN */
+  .btn-copy {
+    margin-top:12px; border:1.5px solid #d1d5db; background:#fff;
+    color:#6b7280; border-radius:8px; padding:6px 14px; font-size:0.75rem;
+    font-weight:600; cursor:pointer; transition:all .15s;
+  }
+  .btn-copy:hover { border-color:var(--teal2); color:var(--teal2); }
+
+  /* TOAST */
+  @keyframes slideUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
+  #toast {
+    display:none; position:fixed; bottom:22px; right:22px; z-index:999;
+    background:var(--teal); color:#fff; padding:11px 20px; border-radius:10px;
+    font-weight:700; font-size:0.85rem; animation:slideUp .3s ease;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+
+  /* PLAN TOGGLE */
+  .plan-toggle {
+    display:flex; gap:4px; background:rgba(255,255,255,0.15);
+    border-radius:12px; padding:4px; align-self:center;
+  }
+  .ptbtn {
+    padding:7px 18px; border-radius:9px; border:none; cursor:pointer;
+    font-size:0.82rem; font-weight:800; letter-spacing:.02em;
+    transition:all .2s; color:rgba(255,255,255,0.75); background:transparent;
+  }
+  .ptbtn.active {
+    background:#fff; color:var(--teal); box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+  .ptbtn:not(.active):hover { background:rgba(255,255,255,0.2); color:#fff; }
+
+  /* plan badge pill in banner */
+  .plan-pill {
+    font-size:0.7rem; font-weight:800; padding:2px 10px; border-radius:20px;
+    background:rgba(255,255,255,0.25); border:1.5px solid rgba(255,255,255,0.4);
+    margin-left:8px; vertical-align:middle;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🐾</span>
+  <div>
+    <h1>Mapa de Competencias · EPMV</h1>
+    <p>Plan Curricular 2024 · Universidad Ricardo Palma</p>
+  </div>
+  <span class="badge">Plan 24</span>
+
+  <div class="plan-toggle">
+    <button class="ptbtn active" id="btn24" onclick="switchPlan('24')">Plan 24</button>
+    <button class="ptbtn" id="btn52" onclick="switchPlan('52')">Plan 52</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- SELECTOR -->
+  <div class="selector-card">
+    <label>Seleccionar Asignatura</label>
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Filtrar por nombre o código…" autocomplete="off">
+    </div>
+    <select id="asignaturaSelect" size="1">
+      <option value="" disabled selected>— Elige una asignatura —</option>
+    </select>
+    <div class="count-hint" id="countHint"></div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="resultArea">
+
+    <!-- Banner de curso -->
+    <div class="course-banner">
+      <span class="code-badge" id="bannerCode"></span>
+      <div>
+        <div class="course-name" id="bannerName"></div>
+        <div class="course-area" id="bannerArea"></div>
+      </div>
+    </div>
+
+    <!-- Sumilla (full width) -->
+    <div class="info-card" style="margin-bottom:16px;">
+      <div class="card-title">
+        <span class="dot"></span> Sumilla
+      </div>
+      <div class="sumilla-text" id="sumillaText"></div>
+      <button class="btn-copy" onclick="copySumilla()">📋 Copiar sumilla</button>
+    </div>
+
+    <!-- Competencias grid -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <!-- Genéricas -->
+      <div class="info-card orange">
+        <div class="card-title orange">
+          <span class="dot"></span> Competencias Genéricas
+        </div>
+        <ul class="comp-list" id="genericList"></ul>
+      </div>
+      <!-- Específicas -->
+      <div class="info-card purple">
+        <div class="card-title purple">
+          <span class="dot"></span> Competencias Específicas
+        </div>
+        <ul class="comp-list" id="specificList"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EMPTY STATE inicial -->
+  <div class="empty-state" id="emptyState">
+    <span class="icon">📚</span>
+    Selecciona una asignatura para ver su sumilla y competencias.
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATOS: SUMILLAS
+// ─────────────────────────────────────────────
+const sumillasData = [
+  { name:"MV-0101 Manejo Veterinario", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctica, que tributa con las competencias específicas de salud animal y producción animal. Tiene como propósito el desarrollo de habilidades de identificación de las ramas de la medicina veterinaria y emplear técnicas de manejo básica en animales de compañía. El contenido de la asignatura comprende el análisis de las diferentes especialidades en medicina veterinaria, el desarrollo conceptos básicos en enfermería veterinaria y la adquisición de habilidades y destrezas en maniobras, procedimientos y protocolos básicos que se realizan en la práctica profesional mediante el uso de herramientas educativas como simuladores, equipos, así como análisis de casos en función de un trabajo colaborativo." },
+  { name:"MV-0102 Introducción a las Ciencias Veterinarias", text:"La asignatura es de naturaleza Practica de carácter obligatorio de formación general. Aporta a las competencias genéricas de comportamiento ético y desarrollo del pensamiento crítico y creativo. Tiene el propósito de desarrollar habilidades de identificación y evaluación de una visión integral de la profesión médico veterinaria, proporcionándole conocimientos básicos sobre los objetivos de la carrera y las áreas de actividad medico veterinaria en un marco de interrelación ética con la comunidad y el medio ambiente." },
+  { name:"MV-0103 Química", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico-práctica, que tributa con la competencia específica de investigación. Tiene el propósito de desarrollar habilidades de identificación de estructuras y propiedades de la materia para entender sus características tanto de sustancias orgánicas e inorgánicas. El contenido de la asignatura comprende los conceptos básicos de la e importancia de la química, la estructura de la materia, la organización e interacción de las moléculas, las soluciones y principales compuestos orgánicos y la estructura de carbohidratos, aminoácidos y lípidos." },
+  { name:"MV-0201 Bioquímica", text:"Curso perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctico, que tributa con las competencias específicas de investigación y salud animal. Tiene el propósito de desarrollar habilidades de identificación de las estructuras moleculares y funciones de las diferentes biomoléculas. El contenido de la asignatura comprende el análisis de la estructura química, función y metabolismo de las biomoléculas como agua, proteínas, enzimas, carbohidratos, lípidos y compuesto nitrogenados, explicando las diversas funciones, procesos metabólicos, mecanismos de regulación y la interrelación entre ellos y el organismo animal, aplicando técnicas para su reconocimiento y valorando los procesos químicos de la materia viva." },
+  { name:"MV-0202 Biología Celular", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico-práctica, que tributa con la competencia específica de investigación. Tiene como propósito el desarrollo de habilidades de identificación de estructuras celulares y el análisis de la función del material genético. El contenido de la asignatura comprende el análisis de la estructura y composición química de la célula, las funciones básicas de los organismos, las reacciones vitales para dar origen a la vida; así mismo se comprenderá las funciones de las organelas en los diferentes procesos celulares aplicando técnicas para su reconocimiento y valoración; y la importancia de los ácidos nucleicos en la división celular y el comportamiento de la información genética." },
+  { name:"MV-0301 Zootecnia General", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico-práctica, que tributa a la competencia específica de producción animal. Tiene como propósito el desarrollar habilidades de identificación y manejo de los diferentes animales de producción. El contenido de la asignatura comprende los conceptos generales de Zootecnia, características de las diferentes especies y razas policavitarias y monocavitarias, así como de los pilares básicos de la producción animal tales como: alimentación, manejo, mejoramiento genético y sanidad; aplicando técnicas de manejo animal en sistema de producción, mejoramiento genético, nutrición y sanidad considerando el bienestar animal y el cuidado del medio ambiente." },
+  { name:"MV-0302 Anatomía Veterinaria", text:"Curso perteneciente al área de Formación Profesional Básica, de naturaleza teórico- práctico, que tributa a las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de identificación de la estructura macroscópica de las diferentes estructuras que conforman la anatomía de los animales domésticos. El contenido de la asignatura comprende el análisis de los aspectos fundamentales de la morfología externa del cuerpo de los animales domésticos, la correlación funcional y clínica con la producción y salud animal; la organización anatómica de los sistemas corporales de los animales domésticos y los conceptos básicos de su funcionamiento. Aplicando técnicas de disección anatómica para cabeza y cuello, miembro torácico, tórax, abdomen, vísceras, pelvis, miembro pélvico y anexos." },
+  { name:"MV-0303 Histología Animal", text:"Curso perteneciente al área de Formación Profesional Básica, de naturaleza teórico- práctico, que tributa con las competencias específicas de salud animal e investigación. Tiene el propósito de desarrollar habilidades de identificación de la estructura detallada de los tejidos fundamentales, sus variantes y sus relaciones permitiendo diferenciar los diversos órganos, aparatos y sistemas. El contenido de la asignatura comprende el estudio de la organización terminal y funcional bajo el aspecto microscópico de los diferentes tejidos de los animales domésticos, señalando las principales diferencias entre algunas especies. Aplicando técnicas de coloración de tejidos e identificación de estructuras para incentivar al estudio de la patología microscópica en la formación del Médico Veterinario basados en principios éticos y humanísticos." },
+  { name:"MV-0304 Bioestadística", text:"Asignatura perteneciente al área de Formación Profesional Básica, de naturaleza teórico-práctico, que tributa a las competencias específicas de investigación y salud pública. Tiene el propósito de desarrollar habilidades de recolección, organización, análisis, interpretación y presentación de datos observados en fenómenos biológicos y sociales. El contenido de la asignatura comprende el reconocimiento y aplicación de los métodos de recolección, organización, análisis y presentación de resultados a partir de datos obtenidos de estudios relacionadas al campo de la salud animal, producción pecuaria y salud pública, como incentivo a la investigación y fuente confiable para la toma de decisiones." },
+  { name:"MV-0401 Microbiología Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Especializada, con carácter teórico-práctico que tributa las competencias específicas de salud animal, salud pública e investigación. Tiene el propósito de desarrollar habilidades de identificación y diagnóstico de los principales agentes causantes de enfermedades en Medicina Veterinaria. El contenido de la asignatura comprende concepciones generales sobre la participación de los microorganismos en el mantenimiento de la vida en el planeta y nociones del rol de ellos en la biotecnología, induciendo a la investigación y al reconocimiento de los agentes microbianos y virus en la causalidad de las enfermedades infecciosas basados en principios éticos y humanísticos." },
+  { name:"MV-0402 Inmunología Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctica que tributa con las competencias específicas de salud animal, salud pública e investigación. Tiene el propósito de desarrollar habilidades de análisis y diagnóstico de los diversos mecanismos inmunológicos, tanto a nivel celular como humoral que presentan los organismos animales, así como la identificación y detección los procesos de resistencia de los animales a inmunógenos. El contenido de la asignatura comprende el estudio de la respuesta inmune, evolución del sistema inmunitario, reacción antígeno-anticuerpo, inmunoglobulinas, formación de los anticuerpos, complemento, hipersensibilidad y enfermedades autoinmunes. Aplicando técnicas y/o pruebas inmunológicas para el reconocimiento de antígenos y anticuerpos de importancia en la Medicina Veterinaria." },
+  { name:"MV-0403 Deontología y Legislación Veterinaria", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza teórico que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar en el estudiante pensamiento crítico en el análisis de las normas ético-morales para el ejercicio de la Medicina Veterinaria. El contenido de la asignatura comprende el estudio del Código Deontológico del Médico Veterinario del Perú, del Estatuto del Colegio Médico Veterinario del Perú, la Ley de creación, del ejercicio de la profesión médica veterinaria y del profesional de la salud médico veterinario tomando como base la metodología expositiva dialogada, el análisis de casos y de aprendizaje cooperativo mediante el uso de técnicas como seminarios y análisis de casos de la realidad dentro de la concepción de una educación humanística." },
+  { name:"MV-0404 Fisiología Animal", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctica, que tributa a las competencias específicas de salud animal, producción animal e investigación. Tiene el propósito de desarrollar habilidades de integrar los procesos fisiológicos de las funciones normales del cuerpo animal que regulan su coordinación, desarrollo y mantenimiento como base para su aplicación en las diversas áreas de la salud animal y producción animal. El contenido de la asignatura comprende el funcionamiento de los sistemas biológicos a nivel celular y molecular; así como el estudio molecular de la fisiología del sistema nervioso, sangre y derivados, fisiología del sistema cardiovascular, fisiología del sistema respiratorio, fisiología del sistema digestivo, fisiología del sistema renal y fisiología del sistema endocrino, utilizando técnicas in-vivo, in-vitro, simuladores y estudio de casos para su aplicación en la Medicina Veterinaria." },
+  { name:"MV-0405 Alimentación y Nutrición Animal", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctica, que tributa con la competencia específica de producción animal. Tiene el propósito de desarrollar habilidades de identificación y evaluación de las transformaciones bioquímicas de los alimentos, procesos metabólicos de nutrientes y alteraciones nutricionales. El contenido de la asignatura comprende el análisis de conceptos generales de alimentación y nutrición animal, los nutrientes y su metabolismo, nutrición, alimentación y enfermedades metabólicas de animales menores y mayores; alteraciones nutricionales que afectan la salud y producción animal, así como el uso adecuado de alimentos en la formulación de raciones según sus necesidades y el estado fisiológico en que se encuentre infecciosas basados en principios éticos y humanísticos." },
+  { name:"MV-0406 Diseño Estadístico", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico-práctica que tributa al logro de la competencia especifica de investigación y salud pública. Tiene el propósito de desarrollar habilidades para el reconocimiento y diseño de los diferentes modelos de estudios de investigación observacionales y experimentales. El contenido de la asignatura comprende el concepto de investigación, los tipos de estudios de investigación, la descripción de los diversos diseños de estudios observacionales y experimentales, cálculo del tamaño de la muestra, desarrollo demostrativo de las pruebas de significación estadística y su interpretación que estimule el interés investigativo del estudiante." },
+  { name:"MV-0501 Patología Veterinaria I", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctica, que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de identificación y análisis de las alteraciones que tienen lugar en las células y los tejidos desde el comienzo de la acción lesiva de un agente hasta la aparición de los cambios morfológicos observables de los animales domésticos. El contenido de la asignatura comprende los conceptos básicos de la patología, las alteraciones celulares, los procesos inflamatorios y las neoplasias de los diferentes sistemas biológicos, utilizando técnicas de diagnóstico microscópico y macroscópico." },
+  { name:"MV-0502 Control de Calidad e Inocuidad de los Alimentos", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctico, que tributa con las competencias específicas de salud pública e investigación. Tiene el propósito de desarrollar habilidades de evaluación de la calidad e inocuidad de los alimentos de origen animal lo que incluye el dictamen a realizar respecto al destino de estos alimentos, de acuerdo con la legislación vigente y con un enfoque preventivo e integral en la cadena de alimentos. El contenido de la asignatura comprende los conceptos generales de la legislación Sanitaria Nacional e internacional, control de calidad, inocuidad, procesos HACCP; utilizando técnicas de diagnóstico macroscópico y microscópico para asegurar la calidad de los alimentos." },
+  { name:"MV-0503 Farmacología y Toxicología Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Especializada, de naturaleza teórico-práctico, que tributa con las competencias específicas de salud animal e investigación. Tiene el propósito de identificar los principales fármacos y tóxicos en medicina veterinaria y la creación de protocolos terapéuticos para las diferentes enfermedades. El contenido de la asignatura comprende los conceptos generales de la farmacología y toxicología, así como los fármacos empleados en los sistemas cardiovascular, digestivo, respiratorio, renal; los fármacos antimicrobianos y los antídotos para las principales intoxicaciones en medicina veterinaria; utilizando técnicas in-vivo, in-vitro, simuladores y estudio de casos para su aplicación en la Medicina Veterinaria." },
+  { name:"MV-0504 Patología Clínica Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Especializada, con carácter teórico-práctico que tributa con las competencias específicas de salud animal e investigación. Tiene el propósito de desarrollar habilidades de distinguir y valorar las diferentes alteraciones en los análisis clínicos de los animales. El contenido de la asignatura comprende el estudio de los principios, técnicas y metodologías de la hematología, bioquímica sanguínea, microbiología y serología clínica, así como su aplicación en el entendimiento y diagnóstico clínico de las enfermedades en especies animales basados en principios éticos y humanísticos." },
+  { name:"MV-0505 Semiología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada, de naturaleza teórico-práctico que tributa con las competencias específicas de sanidad animal y producción animal. Tiene el propósito de desarrollar habilidades para la exploración ordenada y sistemática de los animales domésticos y sus cambios fisiopatológicos; el contenido de la asignatura comprende los métodos generales de exploración física, el examen clínico por sistemas, métodos de sujeción físicos y químicos y los procesos para establecer diagnósticos del estado de salud en animales domésticos, con principios éticos y en armonía con el medio ambiente." },
+  { name:"MV-0506 Biotecnología de la Reproducción y Mejoramiento Animal", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctico que tributa con las competencias específicas de investigación y producción animal. Tiene como propósito el desarrollo de habilidades identificación de individuos dentro de los parámetros productivos y aplicación de las técnicas de potenciamiento reproductivo. El contenido de la asignatura comprende la comprensión de las bases anatómicas y fisiológicas del aparato reproductor en animales domésticos, endocrinología de la reproducción, transporte y sobrevivencia de gametos, fertilización y tipos de placenta, métodos de mejoramiento animal y técnicas de biotecnologías reproductivas con la aplicación de métodos clásicos y modernos." },
+  { name:"MV-0507 Experiencia Supervisada I", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza práctica que tributa con las competencias específicas de salud animal y producción animal. Tiene como propósito la aplicación de los conocimientos adquiridos para la realización del examen físico y emitir un diagnóstico presuntivo. El contenido de la asignatura comprende el concepto de anamnesis, examen físico y técnicas de diagnóstico mediante estudios de casos y el modelo dual." },
+  { name:"MV-0601 Patología Veterinaria II", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctica, que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de identificación y análisis de las alteraciones que tienen lugar en los diferentes sistemas causados por diferentes agentes infecciosos incluyendo los mecanismos fisiopatológicos. El contenido de la asignatura comprende el estudio de la etiología, patogenia, correlación anatomo-clínica de las alteraciones patológicas y neoplasias del sistema respiratorio, sistema digestivo, cardiovascular, nervioso y piel; utilizando técnicas de diagnóstico microscópico y macroscópico." },
+  { name:"MV-0602 Diagnóstico por Imágenes", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctico, que tributa con la competencia especifica de sanidad animal. Tiene como propósito el desarrollo de habilidades de identificación y diagnóstico de las principales alteraciones anatómicas y fisiológicas de los animales mediante las técnicas radiológicas y ecográficas. El contenido de la asignatura comprende los conceptos generales de la imagenología, técnica e interpretación de las imágenes obtenidas por radiología y ecografía de los sistemas cardiovascular, respiratorio, renal, digestivo, reproductor, endocrino, técnicas de biopsia por ecografía para la aproximación diagnóstica tomando como base el uso de metodologías cooperativas participativas." },
+  { name:"MV-0603 Etología y Bienestar Animal", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico- práctica que tributa al logro de las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades para el análisis del comportamiento y conducta animal, el desarrollo de los mismos y el proceso del aprendizaje en base al cumplimiento del bienestar animal. El contenido de la asignatura comprende el uso adecuado de los principios etológicos de la especie, las casusas fisiológicas del comportamiento individual o grupal, comportamiento sexual y de organización social, la aplicación de los conceptos de bienestar animal y el rol del Médico Veterinario en el campo del bienestar animal; utilizando técnicas observacionales como el etograma, seminarios y análisis de casos." },
+  { name:"MV-0604 Anestesiología y Preoperatoria", text:"Asignatura perteneciente al área de formación Profesional Especializada de naturaleza Teórico–Práctico, que tributa con la competencia especifica de salud animal. Tiene como propósito el desarrollo de habilidades evaluación y justificación de las diferentes estrategias anestésicas empleadas en animales, así como la adaptación de estas para las diferentes patologías que presentan los animales. El contenido de la asignatura comprende el manejo de los principales aspectos fisiopatológicos de la anestesia, su monitoreo y repercusión en el paciente; identificación de instalaciones y equipos de instrumental quirúrgico utilizados en cirugía veterinaria moderna, el manejo preoperatorio, la esterilización del material quirúrgico, preparativos quirúrgicos, conducta personal en el quirófano, manejo y uso de los tipos de anestesia, manejo del dolor y posoperatorio bajo la concepción de una educación humanística." },
+  { name:"MV-0605 Obstetricia y Enfermedades Reproductivas", text:"Asignatura perteneciente al área de formación profesional especializada, teórico- práctico; que tributa con las competencias específicas de sanidad animal y producción animal. Tiene como propósito el desarrollo de habilidades de diagnóstico y resolución de los procesos fisiopatológicos reproductivos en los animales. El contenido de la asignatura comprende los conocimientos básicos y clínicos de las características endocrinas, funcionales y patológicas del aparato genital de los animales, así como su repercusión sobre la fertilidad y manejo reproductivo, la influencia del medio ambiente sobre la fertilidad y fecundidad animal, tratamientos terapéuticos/profilácticos según cada patología, mediante métodos de aprendizaje como estudio de casos y seminarios, manteniendo la ética profesional." },
+  { name:"MV-0606 Parasitología y Enfermedades Parasitarias", text:"Asignatura perteneciente al área de formación profesional especializada, teórico- práctico que tributa con las competencias específicas de salud pública, sanidad animal e investigación. Tiene el propósito el desarrollo de habilidades para identificar el parasitismo como asociación biológica y la acción patogénica que ejercen en la salud pública o el ambiente. El contenido de la asignatura comprende el estudio de las enfermedades producidas por parásitos en relación a su etiología, identificación, ciclo biológico, epidemiologia, fisiopatología, respuesta inmune, e importancia en salud pública. Utilizando técnicas de diagnóstico microscópico y macroscópico." },
+  { name:"MV-0607 Anatomía Comparada", text:"Asignatura perteneciente al área de Formación Profesional Complementaria de naturaleza teórico-práctica, que tributa con las competencias específicas de Salud Animal y Producción animal. Tiene el propósito de desarrollar habilidades de identificación de la estructura externa e interna de animales vertebrados e invertebrados estableciendo semejanzas y diferencias de entre estos seres vivos. El contenido de la asignatura comprende los conocimientos de modelos de la morfología de los animales de importancia en las ciencias veterinarias, de los principios básicos de la función de sus sistemas corporales y de su desarrollo embrionario, analizando las similitudes y diferencias en la evolución de los animales. Comparando su origen, clasificación y características en base a los sistemas orgánicos, así como sus principios fisiológicos." },
+  { name:"MV-0608 Acceso a la Información Científica Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Complementaria de naturaleza teórico-práctica que tributa con la competencia específica investigación. Tiene el propósito de desarrollar habilidades de búsqueda y análisis de información científica relevante en las ciencias de la salud. El contenido de la asignatura comprende el uso de herramientas digitales. Comprende la utilización de las bases de datos de científicas de libre acceso en línea y el reconocimiento de información científica de calidad, el uso de software para el manejo de citas bibliográficas y conocer las principales herramientas informáticas a utilizar durante el desarrollo de la carrera. Todas estas herramientas se utilizarán mediante el análisis de artículos científicos con el propósito de familiarizar al estudiante en el lenguaje científico en las ciencias veterinarias." },
+  { name:"MV-0609 Terapéutica Veterinaria", text:"Asignatura perteneciente al área de Formación complementaria de naturaleza teórico- práctico que tributa con la competencia especifica salud animal. Tiene el propósito de desarrollar habilidades de análisis, adaptación y justificación de estrategias terapéuticas para la resolución de las diversas enfermedades en los animales. El contenido de la asignatura comprende el análisis de diferentes técnicas terapéuticas farmacológicas endógenas y exógenas en medicina veterinaria; los riesgos de las terapias inadecuadas y iatrogenias, interiorizando el concepto de prescripción y dosificación adecuada. Así mismos conceptos avanzados de farmacología clínica por sistemas y terapia con antimicrobianos." },
+  { name:"MV-0610 Urgencias Veterinarias", text:"Asignatura perteneciente al Área de Formación Profesional Especializada, de carácter teórico-práctico que tributa con la competencia especifica de salud animal. Tiene como propósito el desarrollo de habilidades de identificación de los diferentes tipos de urgencias y emergencias que se presentan en la práctica clínica veterinaria y los medios para lograr la estabilización y mantenimiento del paciente. El contenido de la asignatura comprende los conceptos generales de urgencias y emergencias, triaje, fluido terapia, tipos de shock y su manejo, resucitación cardiopulmonar, el manejo del dolor y el manejo de maniobras y procedimientos de emergencia según el sistema afectado." },
+  { name:"MV-0701 Sanidad y Producción de cuyes y conejos", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctico que tributa con las competencias específicas de producción animal, salud animal e investigación. Tiene el propósito de desarrollar habilidades de creación y ejecución de actividades de manejo productivo y reproductivo en cuyes y conejos; así mismo identificar, prevenir y controlar las enfermedades potenciales en su crianza. El contenido de la asignatura comprende los conceptos de sistemas productivos de cuyes y conejos, programas de sanidad, alimentación, plan de desarrollo, mejoramiento genético de razas, producción y comercialización de productos y subproductos de carne de cuy y conejo." },
+  { name:"MV-0702 Metodología de la Investigación", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctica que tributa con la competencia especifica de investigación. Tiene el propósito de desarrollar habilidades de análisis, creación y valoración de un proyecto de investigación en ciencias de la salud. El contenido de la asignatura comprende la teoría, las bases metodológicas y epistemológicas, las fases del proceso investigación científica, la identificación del problema, el planteamiento del problema, el marco teórico, la formulación de hipótesis, el diseño metodológico y los demás enfoques teóricos más importantes acorde a los principios éticos de la investigación." },
+  { name:"MV-0703 Enfermedades Infecciosas de los Animales Domésticos", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctica que tributa con las competencias específicas de salud animal y salud pública. Tiene como propósito el desarrollo de habilidades de identificación de las principales enfermedades infecciosas que se producen en los animales, así como la evaluación y adaptación de estrategias para su prevención y control." },
+  { name:"MV-0704 Clínica Quirúrgica de Animales Menores", text:"Asignatura perteneciente al Área de Formación Profesional Especializada, de carácter teórico-práctico que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de planificación, evaluación de un paciente con patología quirúrgica y ejecutar un manejo quirúrgico que asegure el bienestar animal. El contenido de la asignatura comprende los conceptos de asepsia y antisepsia, los diferentes tipos de suturas, anestesia, analgesia y los procedimientos terapéuticos y quirúrgicos necesarios para las patologías quirúrgicas más frecuentes." },
+  { name:"MV-0705 Clínica de Animales Silvestres y Exóticos", text:"Asignatura perteneciente al Área de Formación Profesional Especializada, de carácter teórico-práctico que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de identificar, prevenir y controlar las diversas patologías presentadas por los animales silvestres y exóticos, así como utilizar el manejo correcto de los animales silvestres y exóticas." },
+  { name:"MV-0706 Patología Aviar", text:"Asignatura perteneciente al área de Formación complementaria de naturaleza teórico- práctico que tributa con las competencias específicas de salud animal e investigación. Tiene el propósito de desarrollar habilidades de identificación de las alteraciones orgánicas y sistémicas que suceden en las aves, ejecutando estrategias de diagnóstico para su aplicación clínica. El contenido de la asignatura comprende el desarrollo de las principales enfermedades de aves domésticas y silvestres de carácter infeccioso, nutricional, parasitaria, metabólicas, genéticas y de manejo." },
+  { name:"MV-0707 Experiencia Supervisada II", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza práctica que tributa con las competencias específicas de salud animal y producción animal. Tiene como propósito la aplicación de los conocimientos adquiridos para la emisión de diagnósticos presuntivos y definitivos, y la aplicación de terapias farmacológicas en animales menores y mayores. El contenido de la asignatura comprende el examen físico, fisiopatología de las enfermedades, pruebas diagnósticas y terapéutica mediante medicina basada en evidencia, estudios de casos y el modelo dual." },
+  { name:"MV-0801 Sanidad y Producción Avícola", text:"Asignatura perteneciente al área de Formación Profesional Especializada, de naturaleza teórico – práctico que tributa con las competencias específicas de salud animal y producción animal. Tiene como propósito el desarrollo de habilidades de evaluación de los diferentes sistemas de producción avícola, así mismo el análisis y la evaluación de las enfermedades más comunes en aves, ejecutando técnicas diagnósticas, terapéuticas, medidas de prevención y control de las enfermedades." },
+  { name:"MV-0802 Epidemiología Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico-práctico que tributa con las competencias específicas de salud pública y salud animal. Tiene el propósito de desarrollar habilidades de identificar, analizar y medir los principales factores de las enfermedades en poblaciones y los como intervienen en su aparición con el fin de desarrollar estrategias que permitan su control o erradicación." },
+  { name:"MV-0803 Taller de Investigación I", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctica que tributa con la competencia especifica de investigación. Tiene como propósito de aplicar conocimientos, métodos, procedimientos y estándares de la investigación científica/tecnológica, en proyectos de investigación relacionados con las líneas de investigación de la Medicina Veterinaria." },
+  { name:"MV-0804 Clínica Quirúrgica de Animales Mayores", text:"Asignatura correspondiente al área de formación profesional especializada de carácter teórico- práctico que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de planificación, evaluación de un paciente con patología quirúrgica y ejecutar un manejo quirúrgico que asegure el bienestar de los grandes animales." },
+  { name:"MV-0805 Sanidad y Producción Acuícola", text:"Asignatura perteneciente al área de formación profesional especializada, de naturaleza teórico–práctico que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de evaluar y medir la mejora continua del cultivo sobre los sistemas de producción en acuicultura, identificando los principales patógenos que afectan a los organismos acuáticos y la aplicación de técnicas de prevención, diagnóstico y control de las enfermedades más comunes." },
+  { name:"MV-0806 Sanidad y Producción de Rumiantes Menores", text:"Asignatura perteneciente al área de formación Profesional Especializada de naturaleza teórico-práctica, que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de identificación y evaluación de los diferentes sistemas de producción en rumiantes menores, comprendiendo el manejo y el flujo productivo, así mismo el análisis y la evaluación de las enfermedades más comunes de los rumiantes menores." },
+  { name:"MV-0807 Medicina de Felinos", text:"Asignatura perteneciente al Área de Formación Profesional Complementaria, de carácter teórico-práctico que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y evaluación de las enfermedades de los felinos, ejecutando técnicas diagnósticas, terapéuticas y medidas de prevención y control de las enfermedades más comunes en felinos." },
+  { name:"MV-0808 Etología Clínica del Perro y el Gato", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza teórica práctica que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y caracterización de los principales grupos de conducta en caninos y felinos, su comportamiento social; estableciendo diagnósticos que permitan solucionar los problemas conductuales en estas especies." },
+  { name:"MV-0809 Dermatología Veterinaria", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza teórico-práctica que tributa con la competencia específica de salud animal. Tiene el propósito de desarrollar habilidades de identificación y análisis de las principales enfermedades dermatológicas que se presentan en animales de compañía, así como el establecimiento de diagnósticos y tratamientos de dichas enfermedades." },
+  { name:"MV-0810 Principios Básicos de Cardiología Veterinaria", text:"Asignatura perteneciente al Área de Formación Profesional Complementaria, de carácter teórico-práctico que tributa con la competencia específica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y evaluación de las enfermedades cardiovasculares en caninos y felinos, ejecutando técnicas diagnósticas, terapéuticas y medidas de prevención y control de las enfermedades más comunes en estas especies." },
+  { name:"MV-0811 Oftalmología Veterinaria", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza teórica práctica que tributa con la competencia específica de salud animal. Tiene el propósito de desarrollar habilidades análisis y evaluación de las enfermedades oftálmicas en caninos y felinos, ejecutando técnicas diagnósticas, terapéuticas y medidas de prevención y control de las enfermedades más comunes." },
+  { name:"MV-0901 Taller de Investigación II", text:"Asignatura perteneciente al área de Formación Profesional Básica de naturaleza teórico- práctica que tributa con la competencia especifica de investigación. Tiene como propósito el desarrollo de habilidades de investigación científica/tecnológica, en proyectos de investigación relacionados con las líneas de investigación de la Medicina Veterinaria." },
+  { name:"MV-0902 Gestión y Administración Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Especializada de naturaleza teórico práctico que tributa con la competencia especifica de producción animal. Tiene el propósito de desarrollar habilidades de análisis y aplicación de los aspectos básicos de los costos, contabilidad y administración aplicadas a los campos de las Ciencias Veterinarias para una gestión empresarial eficiente." },
+  { name:"MV-0903 Sanidad y Producción de Porcinos", text:"Asignatura perteneciente al área de Formación Profesional Especializada, de naturaleza teórico – práctico que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de evaluación de los diferentes sistemas de producción porcina, así mismo el análisis y la evaluación de las enfermedades más comunes en porcinos, ejecutando técnicas diagnósticas, terapéuticas, medidas de prevención y control de las enfermedades." },
+  { name:"MV-0904 Sanidad y Producción de Bovinos", text:"Asignatura correspondiente al área de formación profesional especializada de naturaleza teórico – práctico que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de evaluación de los diferentes sistemas de producción bovina de carne y leche, así mismo el análisis y la evaluación de las enfermedades más comunes en bovinos." },
+  { name:"MV-0905 Medicina de Animales de Compañía", text:"Asignatura perteneciente al área de formación Profesional Especializada de naturaleza Teórico – Práctica, que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y evaluación de las enfermedades de los caninos y felinos, ejecutando técnicas diagnósticas, terapéuticas y medidas de prevención y control de las enfermedades más comunes en caninos y felinos." },
+  { name:"MV-0906 Salud Pública Veterinaria", text:"Asignatura perteneciente al área de formación Profesional Especializada de naturaleza teórico-práctico que tributa con la competencia especifica de salud pública. Tiene el propósito de desarrollar habilidades de identificación, análisis y evaluación de los principales problemas y enfermedades zoonóticas, alimentos o medio ambiente que afecten al ser humano." },
+  { name:"MV-0907 Sanidad y Producción de Equinos", text:"Asignatura perteneciente al área de formación Profesional Especializada de naturaleza teórico – práctico que tributa con las competencias específicas de salud animal y producción animal. Tiene el propósito de desarrollar habilidades de evaluación de los diferentes sistemas de crianza equina, así mismo el análisis y la evaluación de las enfermedades más comunes en equinos, ejecutando técnicas diagnósticas, terapéuticas, medidas de prevención y control de las enfermedades." },
+  { name:"MV-1001 Internado en Medicina Veterinaria", text:"Asignatura perteneciente al área de formación Profesional Especializada de naturaleza Práctico que tributa con las competencias específicas salud animal, salud pública, investigación y Producción animal. Tiene el propósito de aplicar y adaptar de forma integral los conocimientos adquiridos de manera lógica y eficiente en el manejo y la clínica médica de las diferentes especies, de importancia económica y social." }
+];
+
+// ─────────────────────────────────────────────
+// DATOS: COMPETENCIAS
+// ─────────────────────────────────────────────
+const competencias = [
+  { code:"EB-0001", name:"Actividades Artísticas y Deportivas",            generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"EB-0002", name:"Taller de Métodos del Estudio Universitario",    generic:["Pensamiento crítico y creativo","Responsabilidad social","Investigación científica y tecnológica"], specific:[] },
+  { code:"EB-0003", name:"Taller de Argumentación Oral y Escrita",         generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"EB-0004", name:"Matemáticas",                                    generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social"], specific:[] },
+  { code:"EB-0005", name:"Inglés I",                                       generic:["Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"MV-0101", name:"Manejo Veterinario",                             generic:["Comportamiento ético","Liderazgo compartido","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 1"] },
+  { code:"MV-0102", name:"Introducción a las Ciencias Veterinarias",       generic:["Comportamiento ético","Autoaprendizaje","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 1","Salud Pública - Nivel 1","Investigación - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0103", name:"Química",                                        generic:["Comportamiento ético","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Investigación - Nivel 1"] },
+  { code:"EB-0006", name:"Psicología General",                             generic:["Pensamiento crítico y creativo","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"EB-0007", name:"Filosofía y Ética",                              generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"EB-0008", name:"Taller de Interpretación y Redacción de Textos", generic:["Pensamiento crítico y creativo","Autoaprendizaje","Comunicación efectiva"], specific:[] },
+  { code:"EB-0009", name:"Inglés II",                                      generic:["Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"EB-0010", name:"Formación Histórica del Perú",                   generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social"], specific:[] },
+  { code:"EB-0011", name:"Recursos Naturales y Medio Ambiente",            generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Investigación científica y tecnológica"], specific:[] },
+  { code:"EB-0012", name:"Realidad Nacional",                              generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social"], specific:[] },
+  { code:"EB-0013", name:"Globalización e Integración",                    generic:["Comportamiento ético","Pensamiento crítico y creativo","Responsabilidad social","Comunicación efectiva"], specific:[] },
+  { code:"MV-0201", name:"Bioquímica",                                     generic:["Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social"], specific:["Investigación - Nivel 1"] },
+  { code:"MV-0202", name:"Biología Celular",                               generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social"], specific:["Investigación - Nivel 1"] },
+  { code:"MV-0301", name:"Zootecnia General",                              generic:["Liderazgo compartido","Responsabilidad social","Comunicación efectiva"], specific:["Producción Animal - Nivel 1"] },
+  { code:"MV-0302", name:"Anatomía Veterinaria",                           generic:["Comportamiento ético","Liderazgo compartido","Autoaprendizaje"], specific:["Salud Animal - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0303", name:"Histología Animal",                              generic:["Pensamiento crítico y creativo","Autoaprendizaje","Resolución de problemas","Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 1","Investigación - Nivel 1"] },
+  { code:"MV-0304", name:"Bioestadística",                                 generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Investigación - Nivel 1","Salud Pública - Nivel 1"] },
+  { code:"MV-0401", name:"Microbiología Veterinaria",                      generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 1","Salud Pública - Nivel 1","Investigación - Nivel 1"] },
+  { code:"MV-0402", name:"Inmunología Veterinaria",                        generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Investigación - Nivel 1"] },
+  { code:"MV-0403", name:"Deontología y Legislación Veterinaria",          generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Comunicación efectiva"], specific:["Salud Animal - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0404", name:"Fisiología Animal",                              generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Producción Animal - Nivel 1","Investigación - Nivel 1"] },
+  { code:"MV-0405", name:"Alimentación y Nutrición Animal",                generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0406", name:"Diseño Estadístico",                             generic:["Pensamiento crítico y creativo","Responsabilidad social","Resolución de problemas"], specific:["Investigación - Nivel 1","Salud Pública - Nivel 1"] },
+  { code:"MV-0501", name:"Patología Veterinaria I",                        generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0502", name:"Control de Calidad e Inocuidad de los Alimentos",generic:["Pensamiento crítico y creativo","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica"], specific:["Salud Pública - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0503", name:"Farmacología y Toxicología Veterinaria",         generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Investigación - Nivel 1"] },
+  { code:"MV-0504", name:"Patología Clínica Veterinaria",                  generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Investigación - Nivel 1"] },
+  { code:"MV-0505", name:"Semiología Veterinaria",                         generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0506", name:"Biotecnología de la Reproducción y Mejoramiento Animal", generic:["Pensamiento crítico y creativo","Liderazgo compartido","Responsabilidad social","Resolución de problemas"], specific:["Investigación - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0507", name:"Experiencia Supervisada I",                      generic:["Comportamiento ético","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 1","Salud Pública - Nivel 1","Investigación - Nivel 1","Producción Animal - Nivel 1"] },
+  { code:"MV-0601", name:"Patología Veterinaria II",                       generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0602", name:"Diagnóstico por Imágenes",                       generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Investigación - Nivel 2"] },
+  { code:"MV-0603", name:"Etología y Bienestar Animal",                    generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0604", name:"Anestesiología y Preoperatoria",                 generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Investigación - Nivel 2"] },
+  { code:"MV-0605", name:"Obstetricia y Enfermedades Reproductivas",       generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0606", name:"Parasitología y Enfermedades Parasitarias",      generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Salud Animal - Nivel 2","Salud Pública - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0607", name:"Anatomía Comparada",                             generic:["Comportamiento ético","Autoaprendizaje","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 2"] },
+  { code:"MV-0608", name:"Acceso a la Información Científica Veterinaria", generic:["Pensamiento crítico y creativo","Autoaprendizaje","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Investigación - Nivel 2"] },
+  { code:"MV-0609", name:"Terapéutica Veterinaria",                        generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0610", name:"Urgencias Veterinarias",                         generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2"] },
+  { code:"MV-0701", name:"Sanidad y Producción de Cuyes y Conejos",        generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0702", name:"Metodología de la Investigación",                generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas"], specific:["Investigación - Nivel 2"] },
+  { code:"MV-0703", name:"Enfermedades Infecciosas de los Animales Domésticos", generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Salud Pública - Nivel 2"] },
+  { code:"MV-0704", name:"Clínica Quirúrgica de Animales Menores",         generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Investigación - Nivel 2"] },
+  { code:"MV-0705", name:"Clínica de Animales Silvestres y Exóticos",      generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Investigación - Nivel 2"] },
+  { code:"MV-0706", name:"Patología Aviar",                                generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0707", name:"Experiencia Supervisada II",                     generic:["Comportamiento ético","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 2","Salud Pública - Nivel 2","Investigación - Nivel 2","Producción Animal - Nivel 2"] },
+  { code:"MV-0801", name:"Sanidad y Producción Avícola",                   generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0802", name:"Epidemiología Veterinaria",                      generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Pública - Nivel 3","Investigación - Nivel 3"] },
+  { code:"MV-0803", name:"Taller de Investigación I",                      generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Investigación - Nivel 3"] },
+  { code:"MV-0804", name:"Clínica Quirúrgica de Animales Mayores",         generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0805", name:"Sanidad y Producción Acuícola",                  generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0806", name:"Sanidad y Producción de Rumiantes Menores",      generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0807", name:"Medicina de Felinos",                            generic:["Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 3"] },
+  { code:"MV-0808", name:"Etología Clínica del Perro y el Gato",           generic:["Comportamiento ético","Pensamiento crítico y creativo","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Comunicación efectiva"], specific:["Salud Animal - Nivel 3"] },
+  { code:"MV-0809", name:"Dermatología Veterinaria",                       generic:["Comportamiento ético","Pensamiento crítico y creativo","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3"] },
+  { code:"MV-0810", name:"Principios Básicos de Cardiología Veterinaria",  generic:["Comportamiento ético","Pensamiento crítico y creativo","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3"] },
+  { code:"MV-0811", name:"Oftalmología Veterinaria",                       generic:["Comportamiento ético","Pensamiento crítico y creativo","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3"] },
+  { code:"MV-0901", name:"Taller de Investigación II",                     generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Investigación - Nivel 4"] },
+  { code:"MV-0902", name:"Gestión y Administración Veterinaria",           generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0903", name:"Sanidad y Producción de Porcinos",               generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0904", name:"Sanidad y Producción de Bovinos",                generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0905", name:"Medicina de Animales de Compañía",               generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0906", name:"Salud Pública Veterinaria",                      generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Pública - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-0907", name:"Sanidad y Producción de Equinos",                generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 3","Salud Pública - Nivel 3","Investigación - Nivel 3","Producción Animal - Nivel 3"] },
+  { code:"MV-1001", name:"Internado en Medicina Veterinaria",              generic:["Comportamiento ético","Pensamiento crítico y creativo","Liderazgo compartido","Autoaprendizaje","Responsabilidad social","Resolución de problemas","Investigación científica y tecnológica","Comunicación efectiva"], specific:["Salud Animal - Nivel 4","Salud Pública - Nivel 4","Investigación - Nivel 4","Producción Animal - Nivel 4"] }
+];
+
+// ─────────────────────────────────────────────
+// ÍNDICE: sumillas por código
+// ─────────────────────────────────────────────
+const sumillaByCode = {};
+sumillasData.forEach(s => {
+  // nombre tiene formato "CODE Nombre…"
+  const spaceIdx = s.name.indexOf(' ');
+  const code = s.name.substring(0, spaceIdx);
+  sumillaByCode[code] = s.text;
+});
+
+// ─────────────────────────────────────────────
+// POPULATE SELECT
+// ─────────────────────────────────────────────
+const sel = document.getElementById('asignaturaSelect');
+let allOpts = competencias.map(c => ({ value: c.code + '||' + c.name, label: `${c.code} · ${c.name}` }));
+
+function renderOptions(list) {
+  sel.innerHTML = '<option value="" disabled selected>— Elige una asignatura —</option>';
+  list.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.value;
+    opt.textContent = o.label;
+    sel.appendChild(opt);
+  });
+  document.getElementById('countHint').textContent =
+    list.length === allOpts.length
+      ? `${list.length} asignaturas disponibles`
+      : `${list.length} resultado${list.length !== 1 ? 's' : ''}`;
+}
+renderOptions(allOpts);
+
+// ─────────────────────────────────────────────
+// FILTRO
+// ─────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const filtered = q
+    ? allOpts.filter(o => o.label.toLowerCase().includes(q))
+    : allOpts;
+  renderOptions(filtered);
+  if (filtered.length === 1) {
+    sel.value = filtered[0].value;
+    sel.dispatchEvent(new Event('change'));
+  }
+});
+
+// ─────────────────────────────────────────────
+// NIVEL PILL
+// ─────────────────────────────────────────────
+function levelPill(text) {
+  const m = text.match(/Nivel\s+(\d)/i);
+  if (!m) return '';
+  const n = m[1];
+  const cls = ['','pill-1','pill-2','pill-3','pill-4'][n] || 'pill-1';
+  return `<span class="level-pill ${cls}">Nv. ${n}</span>`;
+}
+
+// ─────────────────────────────────────────────
+// ON CHANGE
+// ─────────────────────────────────────────────
+sel.addEventListener('change', function() {
+  const val = this.value;
+  if (!val) return;
+  // value may be "CODE||name" (after plan switch) or just code (plan 24 original)
+  const parts = val.split('||');
+  const code = parts[0];
+  const selectedName = parts[1];
+
+  const activeComp = currentPlan === '24' ? competencias : competencias52;
+  const activeSumByCode = currentPlan === '24' ? sumillaByCode : sumillaByCode52;
+
+  const course = selectedName
+    ? activeComp.find(c => c.code === code && c.name === selectedName)
+    : activeComp.find(c => c.code === code);
+  if (!course) return;
+
+  // Banner
+  document.getElementById('bannerCode').textContent = course.code;
+  document.getElementById('bannerName').textContent = course.name;
+  const area = course.code.startsWith('EB') ? 'Estudios Generales' : 'Escuela Profesional de Medicina Veterinaria';
+  document.getElementById('bannerArea').textContent = area + ' · Plan ' + currentPlan;
+
+  // Sumilla
+  const sumText = activeSumByCode[course.code];
+  document.getElementById('sumillaText').textContent = sumText || 'Sumilla no disponible para esta asignatura.';
+
+  // Competencias genéricas
+  const gList = document.getElementById('genericList');
+  gList.innerHTML = '';
+  (course.generic.length ? course.generic : ['No aplica']).forEach((g, i) => {
+    gList.innerHTML += `<li>
+      <span class="bullet bullet-teal">${i+1}</span>
+      <span>${g}</span>
+    </li>`;
+  });
+
+  // Competencias específicas
+  const sList = document.getElementById('specificList');
+  sList.innerHTML = '';
+  if (course.specific.length) {
+    course.specific.forEach((s, i) => {
+      sList.innerHTML += `<li>
+        <span class="bullet bullet-orange">${i+1}</span>
+        <span>${s} ${levelPill(s)}</span>
+      </li>`;
+    });
+  } else {
+    sList.innerHTML = `<li class="bullet-empty">Esta asignatura no tributa competencias específicas de la EPMV.</li>`;
+  }
+
+  // Mostrar resultado
+  document.getElementById('resultArea').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+});
+
+// ─────────────────────────────────────────────
+// COPY SUMILLA
+// ─────────────────────────────────────────────
+function copySumilla() {
+  const text = document.getElementById('sumillaText').textContent;
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('📋 Sumilla copiada'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast('📋 Sumilla copiada');
+    });
+}
+
+let _toastT;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+
+// ─────────────────────────────────────────────
+// PLAN 52 DATA
+// ─────────────────────────────────────────────
+const sumillasData52 = [
+  { name:"MV-0105 Quimica", text:"Curso perteneciente al área de Estudios Generales. Asignatura de naturaleza teórico-práctica, imparte los contenidos básicos de la química necesarios para el desarrollo de la capacidad de comprensión de los procesos bioquímicos y físico-químicos de la producción y la clínica veterinaria despertando el interés a la explicación de los fenómenos naturales. Comprende el estudio de las propiedades físicas y de las reacciones químicas y biológicas de los compuestos orgánicos e inorgánicos del sistema vivo y su efecto sobre el medio ambiente. Incluye nociones fundamentales de la química nuclear." },
+  { name:"MV-0108 Introducción a las Ciencias Veterinarias", text:"Curso perteneciente al área de Formación Profesional Básica. Asignatura de naturaleza teórico-práctico que tiene como propósito orientar al estudiante en adquirir una visión integral de la profesión médico veterinaria, proporcionándole conocimientos básicos sobre los objetivos de la carrera y las áreas de actividad medico veterinaria en un marco de interrelación ética con la comunidad y el medio ambiente." },
+  { name:"MV-0109 Manejo de Animales Menores", text:"Curso perteneciente al área de Formación Profesional Básica. Asignatura de naturaleza teórica- práctica, tiene como objetivo brindar conocimientos para el desarrollo de habilidades y destrezas en las diferentes maniobras, procedimientos y protocolos que se realizan en la práctica profesional en animales de compañía, que incluye el uso de métodos alternativos en la enseñanza de la medicina veterinaria." },
+  { name:"MV-0212 Bioquímica Animal", text:"Curso perteneciente al área de Formación Profesional Básica. Curso es de naturaleza teórico-práctica, tiene como objetivo el estudio de la estructura, función y metabolismo de las biomoléculas, entre ellas: agua, carbohidratos y lípidos y su interrelación explicando los diversos procesos metabólicos del organismo animal y sus mecanismos hormonales de la regulación metabólica orientados al área clínica veterinaria y nutrición animal. Comprende áreas temáticas como: propiedades físicas y químicas e importancia biológica del agua, la estructura, función, metabolismo e importancia de los carbohidratos y lípidos." },
+  { name:"MV-209 Biología Celular", text:"Curso perteneciente al área de Estudios Generales. Curso de naturaleza teórico-práctica que tiene como objetivo brindar información actualizada, integral y organizada de la estructura y composición química de la Célula. Las células constituyen las unidades estructurales y funcionales básicas de los organismos, donde se realizan las reacciones vitales para dar origen a la vida. Se busca que el alumno alcance un buen nivel de comprensión de la integración, interdependencia de las biomoléculas, compartimentalización celular y funcionamiento de las organelas celulares. La asignatura, es de naturaleza teórico-práctica y está dividida en tres unidades temáticas: 1. Origen de la Vida. La célula. Biomoléculas. Membrana Biológica; 2. Procesos celulares. Organelas. División celular y 3.  Ácidos Nucleicos. Flujo de la información genética. Biología molecular aplicada." },
+  { name:"MV-0210 Zootecnia General", text:"Curso perteneciente al área de Formación Profesional Básica. Curso de naturaleza teórico-práctica que tiene como objetivo proporcionar conocimientos básicos de las tecnologías de la Producción Animal en el Perú, así como de los sistemas productivos y su funcionamiento. Conceptos de razas, tipos y su utilidad en campo ganadero en cada grupo productivo como rumiantes mayores y menores (bovinos, ovinos, caprinos y camélidos sudamericanos), monogastricos (equinos y porcinos), además de otras especies (aves de producción, cuyes, y conejos)." },
+  { name:"MV-0308 Anatomía Veterinaria", text:"Curso perteneciente al área de Formación Profesional Básica. Curso de naturaleza teórico-práctica que tiene como objetivo proporcionar conocimientos sobre los aspectos fundamentales de la morfología externa y la estructura macroscópica del cuerpo de los animales domésticos, ejercitando al alumno en la disección como método de estudio e investigación anatómica; asimismo se propone el correlato funcional y clínico con la producción animal. Comprende la organización anatómica de los sistemas corporales de los animales domésticos y los conceptos básicos de su funcionamiento." },
+  { name:"MV-0309 Histología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Básica. Curso de naturaleza teórico-práctica que tiene como objetivo el estudio de la organología animal observada a través de la microscopía. Tiene como objetivo desarrollar la capacidad de identificar y diferenciar la estructura detallada de los tejidos fundamentales, sus variantes y sus relaciones y funciones. Permite conocer y diferenciar los diversos órganos, aparatos y sistemas, su organización terminal y funcional bajo el aspecto microscópico, señalando las principales diferencias entre algunas especies de animales domésticos. Incentiva al estudio de la patología microscópica en la formación del Médico Veterinario. Contenidos: - Definición, origen, clasificación, distribución y función de los tejidos animales. Histología diferencial entre algunas especies de animales domésticos. Estudia la organología animal observada a través del microscopio." },
+  { name:"MV-0305 Bioestadística", text:"Curso perteneciente al área de Formación Profesional Básica. Curso de naturaleza teórico-práctica que tiene como objetivo es el estudio de los métodos y procedimientos para la colección, clasificación, presentación, análisis e interpretación de datos observados en los fenómenos biológicos, y para la inferencia estadística a partir de ellos, propiciando su aplicación y el desarrollo del interés en la lectura y el análisis crítico de la literatura científica. Comprende pruebas estadísticas paramétricas y no paramétricas de mayor uso en la producción, la sanidad animal y la salud pública veterinaria." },
+  { name:"MV-0310 Biofisica aplicada a las ciencias veterinarias", text:"Curso perteneciente al área de Formación Profesional Básica. Curso de naturaleza teórico-práctica que tiene como objetivo el estudio de los principios y leyes que rigen los fenómenos físicos que permiten entender las propiedades físicas de la materia, la energía, las interacciones entre ellas y los seres vivos, la medición de sus manifiestos y efectos, así como el funcionamiento de los aparatos comunes, diseñados para ello, haciendo énfasis en su aplicación en las Ciencias Veterinarias." },
+  { name:"MV-0403 Diseño Experimental", text:"Curso perteneciente al área de Formación Profesional Básica. Curso de naturaleza teórico-práctica que tiene como objetivo responder a la necesidad del reconocimiento de los métodos básicos del diseño experimental como introducción a los métodos de investigación en áreas de las ciencias veterinarias estimulando el interés para proseguir con análisis más complejos. Se expone los diferentes tipos de experimentos, diseños experimentales y pruebas de significación estadística." },
+  { name:"MV-0408 Deontología y Legislación Veterinaria", text:"Curso perteneciente al área de Formación Complementaria. Curso de naturaleza teórica que tiene por objetivo dar a conocer las normas ético-morales para el ejercicio de la Medicina Veterinaria, desarrollando valores inherentes al quehacer de la profesión. Comprende el estudio de la Ley 16200 del ejercicio de la profesión Médico Veterinaria y el Estatuto del Colegio Médico Veterinario del Perú. Brinda al estudiante una visión de las políticas públicas relacionadas al comercio de animales y productos derivados, como los códigos de animales terrestres y acuícolas." },
+  { name:"MV-0410 Fisiología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Básica. Curso naturaleza teórico-práctico, que tiene por objetivo proporcionar al estudiante conocimientos sobre el funcionamiento de los diferentes órganos, aparatos, sistemas y los mecanismos que permiten la regulación e integración de dichas funciones en el organismo animal, permitiéndole comprender el funcionamiento armónico de los diferentes sistemas. Comprende los siguientes temas: Fisiología de la membrana celular, Fisiología de los tejidos excitables, Fisiología de los líquidos circulantes, Fisiología del sistema cardiovascular y respiratorio, Fisiología del sistema digestivo, Fisiología del sistema renal y Fisiología del sistema hormonal." },
+  { name:"MV-0409 Gestión y Economia Veterinaria", text:"Curso perteneciente al área de Formación Profesional Básica. de naturaleza teórica-practica que tiene por objetivo desarrollar y aplicar los aspectos básicos de la contabilidad, gestión, aplicadas a los campos de las Ciencias Veterinarias, permitiendo competencia en aspectos ecónomo-contables y legales  previos  necesarios  para  una  gestión  empresarial  eficiente.  Comprende  conceptos fundamentales de macro y micro economía. Oferta y demanda, análisis de costos y mercado de productos. Registro contable, balances y toma de decisiones en las empresas del sector." },
+  { name:"MV-0411 Agrostología", text:"ACurso perteneciente al área de Formación Profesional Básica. La asignatura de carácter teórico- práctico que tiene como objetivo del estudio de las especies forrajeras con las que el ganado se alimenta en el sitio de crianza, clasificando manejo y utilización. Tiene como objetivo proporcionar al alumno los criterios básicos para el reconocimiento de pastizales, su morfología y el manejo adecuado de la producción de forraje y la calidad de la alimentación pecuaria. Identificación de las condiciones agroecológicas para el uso de las diferentes especies forrajeras." },
+  { name:"MV-0412 Genetica y Mejoramiento Animal", text:"Curso perteneciente al área de Formación Profesional Básica. El curso naturaleza teórico-práctico que tiene como objetivo el estudio de los principios fundamentales de la herencia y su variabilidad en los seres vivos, sus bases materiales y su aplicación práctica. Tiene como objetivo impartir los conceptos y la metodología propios del análisis genético de organismos de origen animal que permitan explicar los procesos evolutivos y su aplicación en el mejoramiento animal. Mejoramiento Animal se ocupa del estudio de la evaluación genética de poblaciones animales y de las interacciones entre genes y medio ambiente. Tiene como objetivo introducir al alumno en la metodología de la evaluación genética de animales, con métodos para aprovechar diferentes efectos de los genes en la optimización de programas de mejoramiento animal, estimulando el desarrollo de la industria pecuaria del país." },
+  { name:"MV-0413 Practica Pre-Profesional I", text:"Curso perteneciente al área de Formación Complementaria. El curso naturaleza práctica que tiene como objetivo realizar una Práctica de campo, que enfrenta al alumno desde inicio de la carrera con los diferentes aspectos de la actividad veterinaria. El grado de responsabilidad en las prácticas está de acuerdo con el nivel de conocimiento alcanzado en las aulas." },
+  { name:"MV-0503 Microbiología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada. El curso naturaleza práctica que tiene como objetivo el estudio de la estructura, fisiología, genética y factores de virulencia de los agentes infecciosos de importancia en Medicina Veterinaria, que conduzcan a su diagnóstico e identificación. Proporciona conceptos generales sobre la participación de los microorganismos en el mantenimiento de la vida en el planeta y nociones del rol de ellos en la Biotecnología e induce a la investigación y al reconocimiento de los agentes microbianos en la causalidad de las enfermedades infecciosas. Comprende el estudio de Hongos, Bacterias, Virus y Priones; además, de principios de Biotecnología." },
+  { name:"MV-0504 Inmunología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada. El curso de naturaleza teórico- práctico que tiene como objetivo el estudio de los diversos mecanismos inmunológicos, tanto a nivel celular como humoral, que presentan los organismos animales y que son usados como respuesta a la acción de diversos agentes externos e internos, que permite reconocer y explicar los procesos de resistencia de los animales a inmunógenos. Comprende: Respuesta inmune, Evolución del sistema inmunitario, Reacción antígeno-anticuerpo, Inmunoglobulinas, Formación de los anticuerpos, Complemento, Hipersensibilidad y Enfermedades autoinmunes." },
+  { name:"MV-0509 Teriogenología", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo estudiar la reproducción del macho y la hembra, incluyendo fisiología y patología del aparato reproductivo, la práctica clínica, obstetricia, ginecología, andrología, espermatología y biotecnologías reproductivas." },
+  { name:"MV-0507 Alimentación y Nutrición Animal", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo comprender el rol de los nutrientes en los procesos metabólicos de los alimentos, su efecto sobre la salud animal y su uso adecuado en la formulación de raciones. Comprende las transformaciones bioquímicas y de la degradación de los alimentos, los procesos metabólicos de los nutrientes y las alteraciones nutricionales que afectan la salud y la producción de los animales domésticos. Identifica nutrientes, determina los requerimientos nutritivos de los animales y formula raciones balanceadas para optimizar la producción animal. Comprende las necesidades nutritivas y de alimentación de los animales." },
+  { name:"MV-0510 Industrializacion de los productos de origen animal", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo capacitar al estudiante para reconocer las características óptimas de la leche, la carne, huevos y aplicar los procesos tecnológicos en la Industria Alimentaría para la producción de sus derivados, incentivando la aplicabilidad en la elaboración de sub-productos lácteos y cárnicos. Desarrolla todos los procesos industriales para la creación de insumos para consumo humano bajo requerimientos de alta calidad. Se trata temas como: Análisis de calidad de la materia prima (leche y carne) para su industrialización; Buenas Prácticas de Higiene durante el proceso de producción. Fabricación de subproductos de leche y carne." },
+  { name:"MV-0506 Farmacología y Toxicología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo permitir al estudiante interpretar la farmacodinamia y farmacocinética de los fármacos y sustancias tóxicas, endógenas y exógenas en medicina veterinaria y los riesgos de las terapias inadecuadas, iatrogenia, interiorizando el concepto de prescripción y dosificación adecuada. Comprende conceptos básicos de farmacología y toxicología. Uso adecuado de sustancias medicamentosas. Sustancias tóxicas. Antídotos." },
+  { name:"MV-0605 Patología Veterinaria I ", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo el enfoque sistémico que se ocupa de las alteraciones ocurridas a nivel de células, órganos, aparatos y sistemas. Tiene por objetivo analizar y asociar las alteraciones y relacionarlas con sus causas dando lugar al diagnóstico, explicando los mecanismos de acción de las noxas en los procesos patológicos. Trata sobre los conceptos básicos de la patología, alteraciones y neoplasias del sistema urinario y patogenia del sistema reproductor." },
+  { name:"MV-0608 Enfermedades Infecciosas de los Animales Domesticos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo identificar, diagnosticar y aplicar medidas terapéuticas y de control de las principales enfermedades infecciosas de mayor importancia en el Perú que afectan a los animales de producción, de compañía, y silvestres. Comprende la aplicación de los conocimientos fundamentales sobre características morfológicas, culturales, bioquímicas, moleculares y ecología de los agentes infecciosos de importancia en Medicina Veterinaria, y el estudio de las enfermedades producidas por estos agentes infecciosos: etiología, patogenia, examen anátomo-patológico, respuesta inmune, epidemiología y su importancia en la salud pública a fin de poder realizar los adecuados tratamientos y aplicaciones de medidas de control y prevención. Desarrolla criterios para el diagnóstico diferencial." },
+  { name:"MV-0609 Formulación de proyectos en Ciencias Veterinarias", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo desarrollar conocimientos en los alumnos, que le permitan competencia en el proceso de elaboración de proyectos de salud animal y salud pública, su desarrollo desde la identificación del problema a la evaluación del impacto de la intervención." },
+  { name:"MV-0610 Parasitología y Enfermedades Parasitarias", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo la identificación y diagnóstico, tratamiento y control de las principales enfermedades parasitarias que afectan a los animales de producción, de compañía, y silvestres de mayor importancia en el Perú. Comprende la aplicación de los conocimientos fundamentales sobre la fisiopatología, ciclos biológicos y ecología de los parásitos de importancia en Medicina Veterinaria. El estudio de las enfermedades producidas por estos agentes parasitarios: etiología, patogenia, examen anátomo-patológico, respuesta inmune, epidemiología e importancia en salud pública a fin de poder realizar los adecuados tratamientos y aplicaciones de medidas de control y prevención. Determina puntos críticos de los ciclos evolutivos de los parásitos para su control y eliminación." },
+  { name:"MV-0612 Anestesiología y Preoperatoria", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo conocer técnicas pre-operatorias y los conceptos teóricos y prácticos necesarios para un manejo adecuado de las mismas. El objetivo es dotar al alumno de las herramientas necesarias para realizar los procedimientos usados en la práctica quirúrgica incentivando al desarrollo de destrezas en la cirugía. Comprende el reconocimiento de los aspectos fisiopatológicos, su importancia y la consecuencia que pueden tener los errores que se cometan. Se tocan temas tales como: tipos de instalaciones, instrumentos y equipos utilizados en cirugía veterinaria moderna. Tipos de quirófano y mobiliario, instrumental quirúrgico, tipos y aplicación de suturas. Esterilización del material, preparativos quirúrgicos, conducta personal en el quirófano. Tipos de Anestesia. Anestesia inhalatoria, su uso y manejo, partes y ensamblaje del equipo. Manejo del dolor y pos-operatorio." },
+  { name:"MV-0613 Practicas Pre-Profesional II", text:"Curso perteneciente al área de Formación Complementaria. Curso de naturaleza práctico que tiene como objetivo complementar la formación del alumno en los diferentes aspectos de la actividad veterinaria en el campo de su preferencia. El grado de responsabilidad en las prácticas está de acuerdo con el nivel de conocimiento alcanzado en las aulas." },
+  { name:"MV-0614 Manejo de Fauna Silvestre", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo aplicar la teología y participar, como profesional médico veterinario en proyectos y planes de manejo de fauna silvestre en equipos multidisciplinarios. Comprende: introducción al manejo de animales silvestres. Manejo y control de poblaciones, crianza en cautiverio y semi cautiverio y técnicas de contención y alimentación de las especies silvestres más comunes de la fauna peruana. Reconoce la importancia de la conservación de la biodiversidad biológica." },
+  { name:"MV-0704 Patología Veterinaria II", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo proporcionar un enfoque sistémico que se ocupa de las alteraciones ocurridas a nivel de células, órganos, aparatos y sistemas. Tiene por objetivo analizar y asociar las alteraciones y relacionarlas con sus causas dando lugar al diagnóstico, explicando los mecanismos de acción de las noxas en los procesos patológicos de sistemas en estudio. Trata sobre alteraciones y neoplasias del sistema respiratorio, sistema digestivo, cardiovascular y nervioso. Piel. Explica los mecanismos de acción en los procesos patológicos de los sistemas en estudio" },
+  { name:"MV-0709 Epidemiología Veterinaria y Control de Zoonosis", text:"Curso perteneciente al área de Formación Profesional Especializada. El curso de naturaleza teórico- práctica tiene como objetivo proveer los conocimientos teórico-prácticos y su aplicación en el reconocimiento, caracterización, análisis y síntesis, frecuencia y distribución- de las enfermedades en poblaciones y los factores que intervienen en su presentación a fin de desarrollar políticas y estrategias que permitan su control o erradicación. Comprende unidades temáticas como perspectivas históricas de la relación Medicina Veterinaria - Epidemiología, Conceptos Epidemiológicos, Medicina Ecológica, la Investigación Epidemiológica y el Control y Erradicación de la enfermedad. Desarrolla criterios en el manejo de las enfermedades en poblaciones" },
+  { name:"MV-0710 Patología Clinica Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo el estudio de los principios, técnicas y metodologías de la hematología, bioquímica sanguínea, microbiología y serología clínica, así como su aplicación en el entendimiento y diagnóstico clínico de las enfermedades en especies animales." },
+  { name:"MV-0711 Control de Calidad e Inocuidad de los Alimentos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo proporcionar a la población alimentos inocuos y de calidad nutritiva. Abarca temas tales como: responsabilidad de la profesión Médico Veterinaria sobre la Higiene Alimentaria, detección y determinación del origen y tipos de adulteración en los alimentos, relación de la Salud Pública Veterinaria en la prevención y control de las toxiinfecciones y de las zoonosis de origen alimentario. Desarrolla sensibilidad ante impactos que alteran la calidad de los alimentos y que afectan al medio ambiente." },
+  { name:"MV-0712 Clinica Quirurgica de Animales Menores", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo capacitar en actividades y rutinas quirúrgicas y post quirúrgicas en animales menores. Trata temas como: Manejo quirúrgico de lesiones cutáneas específicas. Heridas y reconstrucción. Técnicas para el cierre de heridas y la colocación de drenes. Caudectomia en pacientes. Cirugía de los dedos y almohadillas podales. Cirugía del conducto auditivo del perro. Cirugía cavidad bucal y oro faringe. Cirugía abdominal. Cirugía del sistema digestivo. Cirugía torácica. Cirugía urogenital. Cirugía de sistema reproductor y genital. Cirugía del aparato reproductor femenino. Estimula la orientación clínica quirúrgica, reparativa y reconstructiva." },
+  { name:"MV-0713 Semiología Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo proporcionar conocimientos y desarrollar habilidades y destrezas para analizar e interpretar correctamente los signos y síntomas fisiológicos y patológicos y presumir el diagnóstico y pronóstico del estado de salud de los animales." },
+  { name:"MV-0714 Taller de Tesis", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo la aplicación de los conocimientos desarrollados en el curso de Formulación de Proyectos en Ciencias Veterinarias específicamente en la elaboración de proyectos de investigación que conduzcan a la realización de un trabajo de tesis para la consecución del título de médico veterinario. Es la integración de materias previas como la bioestadística, el diseño experimental y la metodología de la investigación para la elaboración y redacción un proyecto de investigación. Propicia la curiosidad y acuciosidad científica." },
+  { name:"MV-0808 Etología y Bienestar Animal", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo entender la conducta animal en diversos entornos ambientales. Comprende la definición y ámbito de la etología, causas fisiológicas del comportamiento animal. La comunicación en los animales. Comportamiento a nivel individual y grupal. Comportamiento sexual y organización social y la evolución del comportamiento. Permite establecer medidas orientadas al bienestar animal Tiene como objetivo adquirir la capacidad de realizar análisis críticos respecto al Bienestar Animal desde diferentes perspectivas, para diferentes especies y en situaciones diversas, y poder reconocer sus implicaciones éticas y legales. Comprende conceptos de Bienestar Animal, su aplicación y define el rol del Médico Veterinario en el campo del Bienestar animal. Sensibiliza la tenencia y manejo responsable y humanitario de los animales." },
+  { name:"MV-0809 Sanidad y Producción de cuyes y conejos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo conocer el manejo productivo de cuyes y conejos en el país, integrando los conocimientos adquiridos en el desarrollo de la carrera. Comprende programas de sanidad, alimentación, plan de desarrollo, mejoramiento genético, producción y comercialización de productos y subproductos. Aplica conocimientos y experiencia para el mejoramiento de las razas y producción de cuyes y el desarrollo de la producción de carne de conejo y sus subproductos." },
+  { name:"MV-0810 Diagnostico por Imagenes", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo aplicar tecnologías para el desarrollo de imágenes y su interpretación en el diagnóstico en la práctica clínica en medicina veterinaria. Comprende fundamentos de radiología y ecología, sus usos y aplicaciones. Diagnóstico y elaboración de informes Complementa la orientación clínica de los estudiantes." },
+  { name:"MV-0811 Clinica Quirurgica de Animales Mayores", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo capacitar en actividades y rutinas quirúrgicas y post quirúrgicas en animales mayores. Trata temas como: heridas y reconstrucción, drenes, cirugía estética, abdominal y podal. Cirugía del sistema reproductor. Incentiva la orientación clínica terapéutica y reconstructiva." },
+  { name:"MV-0812 Sanidad y Producción Acuicola", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo, comprender el estudio general de las metodologías y técnicas que se desarrollan en el cultivo de los recursos hidrobiológicos de importancia económica en aguas continentales. Adquisición de conocimientos aplicados y específicos sobre: Acuicultura y sistemas de producción en piscicultura. Las enfermedades más importantes que afectan a los peces en nuestro territorio. Diagnóstico, tratamiento y medidas de prevención y control. Y Las implicaciones de la piscicultura en la salud pública, seguridad alimentaria y en las múltiples interacciones con el medio ambiente." },
+  { name:"MV-0813 Practica Pre-Profesional III", text:"Curso perteneciente al área de Formación Complementaria. Curso de naturaleza práctica que tiene como objetivo complementar la formación del alumno en los diferentes aspectos de la actividad veterinaria en el campo de su preferencia. El grado de responsabilidad en las prácticas está de acuerdo con el nivel de conocimiento alcanzado en las aulas." },
+  { name:"MV-0814 Clinica de Animales Silvestres y Exoticos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo brindar conocimientos y habilidades en el manejo y enfermedades de animales silvestres y exóticos. Inicio de las bases del manejo, nutricional, contención y cuidado durante la hospitalización de fauna silvestre y exótica. Desarrollo del Examen físico en diferentes especies de animales silvestres y exóticos incluyendo aves, reptiles y mamíferos, con énfasis en la fauna silvestre nacional. Herramientas para el diagnóstico clínico y radiológico, primeros auxilios incluyendo técnicas de administración de fluidos, triaje, vendajes y tratamientos. Familiarización con los diferentes protocolos de anestesia en diferentes especies de fauna silvestre y exótica." },
+  { name:"MV-0908 Sanidad y Producción Avicola", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo integrar prácticas y programas de sanidad en el proceso productivo de aves de postura y producción de carne de diferentes grupos de aves de producción. Comprende sistemas técnicos de explotación de las especies domésticas de aves de postura y de carne bajo condiciones climáticas diferentes. Sistemas de producción. Características de crianza de aves. Reproductores. Incubación. Administración y economía de la producción avícola tecnificada. Desarrolla conceptos de calidad productiva integrando el componente sanidad o programas sanitarios en el proceso de la producción e industrialización de proteína animal. Características de crianza de aves. Reproductores. Incubación. Administración y economía de la producción avícola tecnificada. Integra el componente sanidad o programas sanitarios en el proceso de la producción e industrialización de proteína de origen animal." },
+  { name:"MV-0910 Sanidad y Producción de Porcinos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo conocer el manejo productivo del ganado porcino integrando los conocimientos adquiridos en el desarrollo de la carrera.  Comprende programas de sanidad,alimentación, plan de desarrollo, mejoramiento genético, producción y comercialización de productos y subproductos. Aplica conocimientos y experiencia para el desarrollo de la producción y comercialización de carne y subproductos de la especie porcina." },
+  { name:"MV-0909 Salud Publica Veterinaria", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo la Promoción de la salud y de las condiciones para ser saludable. El estudiante desarrollará conocimientos para identificar la existencia de inequidades en salud y sus determinantes, las prioridades del gobierno y de la sociedad civil para reducirlas, y así contribuir a disminuir la pobreza y la mortalidad infantil, a fortalecer la protección e inocuidad de los alimentos, el control de las zoonosis y la prevención de la enfermedades crónicas y sociales." },
+  { name:"MV-0912 Sanidad y Producción de Rumiantes Menores", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo conocer el manejo productivo de los camélidos sudamericanos, ovinos y caprinos. Integrando los conocimientos adquiridos en el desarrollo de la carrera. Comprende programas de sanidad, alimentación, plan de desarrollo, mejoramiento genético, producción y comercialización de productos y subproductos. Aplica conocimientos y experiencia para el desarrollo de la producción, mejoramiento genético e industrialización delos productos derivados de estas especies animales." },
+  { name:"MV-0911 Sanidad y Producción de Bovinos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo conocer el manejo productivo de bovinos productores de carne y de leche de importancia económica en el país, integrando los conocimientos adquiridos en el desarrollo de la carrera. Comprende programas de sanidad, alimentación, plan de desarrollo, mejoramiento genético, producción y comercialización de productos y subproductos. Aplica conocimientos y experiencia para el desarrollo de la producción e industria bovina de carne y leche." },
+  { name:"MV-0913 Medicina de Animales de Compañia", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo capacitar al estudiante a identificar, resolver y manejar las principales enfermedades que se presentan, en la clínica diaria, en mascotas con énfasis en caninos y felinos. Comprende: identificación en el paciente los datos subjetivos y objetivos; examen físico, listado de problema, diagnósticos diferenciales, plan diagnóstico y terapéutico. Estimula la orientación clínica en animales menores." },
+  { name:"MV-914 Sanidad y Producción de Equinos", text:"Curso perteneciente al área de Formación Profesional Especializada. Curso de naturaleza teórico- práctico que tiene como objetivo conocer el manejo productivo de équidos, integrando los conocimientos adquiridos en el desarrollo de la carrera. Comprende programas de sanidad, alimentación, plan de desarrollo, mejoramiento genético, producción y comercialización de productos y subproductos. Aplica conocimientos y experiencia para el desarrollo de la producción de équidos en el país." },
+  { name:"MV-1009 Internado I", text:"Curso perteneciente al área de Formación Profesional Especializada. Estadio de naturaleza práctica que tiene como objetivo aplicar de forma integral los conocimientos adquiridos durante el período estudiantil de manera lógica y eficiente en el manejo y la clínica médica de las especies de animales Comprende prácticas de campo realizadas bajo la supervisión de profesionales especialistas en el área de la dependencia." },
+  { name:"MV-1010 Internado II", text:"Curso perteneciente al área de Formación Profesional Especializada. Estadio de naturaleza práctica que tiene como objetivo aplicar de forma integral los conocimientos adquiridos durante el período estudiantil de manera lógica y eficiente en el manejo y la clínica médica de las especies de animales Comprende prácticas de campo realizadas bajo la supervisión de profesionales especialistas en el área de la dependencia." },
+  { name:"MV-1011 Internado III", text:"Curso perteneciente al área de Formación Profesional Especializada. Estadio de naturaleza práctica que tiene como objetivo aplicar de forma integral los conocimientos adquiridos durante el período estudiantil de manera lógica y eficiente en el manejo y la clínica médica de las especies de animales Comprende prácticas de campo realizadas bajo la supervisión de profesionales especialistas en el área de la dependencia." },
+  { name:"MV-1012 Internado IV", text:"Curso perteneciente al área de Formación Profesional Especializada. Estadio de naturaleza práctica que tiene como objetivo aplicar de forma integral los conocimientos adquiridos durante el período estudiantil de manera lógica y eficiente en el manejo y la clínica médica de las especies de animales Comprende prácticas de campo realizadas bajo la supervisión de profesionales especialistas en el área de la dependencia." },
+  { name:"Acceso a la Información Científica Veterinaria", text:"Asignatura perteneciente al área de Formación Profesional Complementaria de naturaleza teórico-práctica que tributa con la competencia específica investigación. Tiene el propósito de desarrollar habilidades de búsqueda y análisis de información científica relevante en las ciencias de la salud. El contenido de la asignatura comprende el uso de herramientas digitales. Comprende la utilización de las bases de datos de científicas de libre acceso en línea y el reconocimiento de información científica de calidad, el uso de software para el manejo de citas bibliográficas y conocer las principales herramientas informáticas a utilizar durante el desarrollo de la carrera. Todas estas herramientas se utilizarán mediante el análisis de artículos científicos con el propósito de familiarizar al estudiante en el lenguaje científico en las ciencias veterinarias." },
+  { name:"Urgencias Veterinarias", text:"Asignatura perteneciente al Área de Formación Profesional Especializada, de carácter teórico-práctico que tributa con la competencia especifica de salud animal. Tiene como propósito el desarrollo de habilidades de identificación de los diferentes tipos de urgencias y emergencias que se presentan en la práctica clínica veterinaria y los medios para lograr la estabilización y mantenimiento del paciente. El contenido de la asignatura comprende los conceptos generales de urgencias y emergencias, triaje, fluido terapia, tipos de shock y su manejo, resucitación cardiopulmonar, e manejo del dolor y el manejo de maniobras y procedimientos de emergencia según el sistema afectado; todo ellos dentro de un marco de una visión integral de la salud bajo la concepción de una educación humanística." },
+  { name:"Principios Basicos de Cardiología Veterinaria", text:"Asignatura perteneciente al Área de Formación Profesional Complementaria, de carácter teórico-práctico que tributa con la competencia específica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y evaluación de las enfermedades cardiovasculares en caninos y felinos, ejecutando técnicas diagnósticas, terapéuticas y medidas de prevención y control de las enfermedades más comunes en estas especies. El contenido de la asignatura comprende el desarrollo de los conceptos básicos de cardiología, la historia clínica del paciente cardiópata, sus signos clínicos, el análisis e interpretación de pruebas auxiliares para detectar pacientes cardiópatas como ECG y Ecocardiograma, tratamientos y maniobras a realizar en los pacientes cardiópatas y las principales enfermedades congénitas y adquiridas; todo ellos dentro de un marco de una visión integral de la salud." },
+  { name:"Dermatología Veterinaria", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza teórico-práctica que tributa con la competencia específica de salud animal. Tiene el propósito de desarrollar habilidades de identificación y análisis de las principales enfermedades dermatológicas que se presentan en animales de compañía, así como el establecimiento de diagnósticos y tratamientos de dichas enfermedades. El contenido de la asignatura comprende la resolución de problemas en paciente con problemas de piel; así mismo se aplicarán técnicas y herramientas de diagnóstico en dermatología, el paciente alérgico, ectoparásito, dermatofitosis, endocrinas y autoinmunes; mediante el uso de técnicas como seminarios y análisis de casos prácticos de la realidad bajo la concepción de una educación humanística." },
+  { name:"Etología clínica del perro y del gato", text:"Asignatura perteneciente al área de Formación Complementaria de naturaleza teórica práctica que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y caracterización de los principales grupos de conducta en caninos y felinos, su comportamiento social; estableciendo diagnósticos que permitan solucionar los problemas conductuales en estas especies. El contenido de la asignatura comprende el uso adecuado de los principios etológicos clínicos propios cuidando del bienestar de los perros y gatos domésticos tomando como base la metodología expositiva dialogada y de aprendizaje cooperativo mediante el uso de técnicas como seminarios y análisis de casos prácticos de la realidad bajo la concepción de una educación humanística." },
+  { name:"Medicina de Felinos", text:"Asignatura perteneciente al Área de Formación Profesional Complementaria, de carácter teórico-práctico que tributa con la competencia especifica de salud animal. Tiene el propósito de desarrollar habilidades de análisis y evaluación de las enfermedades de los felinos, ejecutando técnicas diagnósticas, terapéuticas y medidas de prevención y control de las enfermedades más comunes en felinos. El contenido de la asignatura comprende los fundamentos básicos de la medicina felina involucrando anatomía y fisiología; la exploración clínica del gato, técnicas y procedimientos diagnósticos y exámenes auxiliares en la especie felina, enfermedades microbianas, congénitas y adquiridas de los felinos; el desarrollo de la historia clínica y la elaboración de estrategias terapéuticas; todo ellos dentro de un marco de una visión integral de la salud y de un profundo respeto a las normas éticas hacia los pacientes y sus propietarios." }
+];
+
+const competencias52 = [
+  { code:"MV-0101", name:"Manejo de Animales Menores", generic:["Comportamiento ético", "Liderazgo compartido", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 1"] },
+  { code:"MV-0102", name:"Introducción a las Ciencias Veterinarias", generic:["Comportamiento ético", "Autoaprendizaje", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 1", "Salud Pública - Nivel 1", "Investigación - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0103", name:"Química", generic:["Comportamiento ético", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas"], specific:["Investigación - Nivel 1"] },
+  { code:"EB-0011", name:"Zootecnia General", generic:["Liderazgo compartido", "Responsabilidad social", "Comunicación efectiva"], specific:["Producción Animal - Nivel 1"] },
+  { code:"MV-0201", name:"Bioquímica", generic:["Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social"], specific:["Investigación - Nivel 1"] },
+  { code:"MV-0202", name:"Biología Celular", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social"], specific:["Investigación - Nivel 1"] },
+  { code:"MV-0301", name:"Biofísica Aplicada a las Ciencias Veterinarias", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Investigación científica y tecnológica"], specific:["Investigación - Nivel 1"] },
+  { code:"MV-0302", name:"Anatomía Veterinaria", generic:["Comportamiento ético", "Liderazgo compartido", "Autoaprendizaje"], specific:["Salud Animal - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0303", name:"Histología Veterinaria", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0304", name:"Bioestadística", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas"], specific:["Investigación - Nivel 1", "Salud Pública - Nivel 1"] },
+  { code:"MV-0403", name:"Diseño Experimental", generic:["Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Investigación científica y tecnológica"], specific:["Salud Pública - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0408", name:"Deontología y Legislación Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Comunicación efectiva"], specific:["Salud Animal - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0409", name:"Gestión y Administracion Veterinaria", generic:["Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Investigación científica y tecnológica"], specific:["Investigación - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0410", name:"Fisiología Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Responsabilidad social", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0412", name:"Genética y Mejoramiento Animal", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas"], specific:["Investigación - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0411", name:"Agrostología", generic:["Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social"], specific:["Producción Animal - Nivel 1"] },
+  { code:"MV-0413", name:"Práctica Pre-Profesional I", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Comunicación efectiva"], specific:["Salud Animal - Nivel 1", "Salud Pública - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0503", name:"Microbiología Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 1", "Salud Pública - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0504", name:"Inmunología Veterinaria", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0506", name:"Farmacología y Toxicología Veterinaria", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 1", "Investigación - Nivel 1"] },
+  { code:"MV-0507", name:"Alimentación y Nutrición Animal", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Producción Animal - Nivel 1"] },
+  { code:"MV-0509", name:"Teriogeniología", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 1", "Investigación - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0510", name:"Industrialización de los Productos de Origen Animal", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas"], specific:["Salud Pública - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"MV-0605", name:"Patología Veterinaria I", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 2", "Producción Animal - Nivel 2"] },
+  { code:"MV-0608", name:"Enfermedades Infecciosas de los Animales Domésticos", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 2", "Salud Pública - Nivel 2"] },
+  { code:"MV-0609", name:"Formulación de Proyectos en Ciencias Veterinarias", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Comunicación efectiva"], specific:["Investigación - Nivel 2"] },
+  { code:"MV-0610", name:"Parasitología y Enfermedades Parasitarias", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 2", "Salud Pública - Nivel 2", "Investigación - Nivel 2"] },
+  { code:"MV-0612", name:"Anestesiología y Preoperatoria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 2", "Investigación - Nivel 2"] },
+  { code:"MV-0614", name:"Manejo de Fauna Silvestre", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 2"] },
+  { code:"MV-0613", name:"Práctica Pre-Profesional II*", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas"], specific:["Salud Animal - Nivel 2", "Producción Animal - Nivel 2"] },
+  { code:"MV-0704", name:"Patología Veterinaria II", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 2", "Producción Animal - Nivel 2"] },
+  { code:"MV-0709", name:"Epidemiología Veterinaria y Control de Zoonosis", generic:["Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Pública - Nivel 2", "Investigación - Nivel 2"] },
+  { code:"MV-0710", name:"Patología Clínica Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas"], specific:["Salud Animal - Nivel 2", "Investigación - Nivel 2"] },
+  { code:"MV-0711", name:"Control de Calidad e Inocuidad de los Alimentos", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Responsabilidad social", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Pública - Nivel 2", "Producción Animal - Nivel 2"] },
+  { code:"MV-0712", name:"Clínica Quirúrgica de Animales Menores", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 2", "Investigación - Nivel 2"] },
+  { code:"MV-0713", name:"Semiología Veterinaria", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 2", "Producción Animal - Nivel 2"] },
+  { code:"MV-0714", name:"Taller de Tesis", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Investigación científica y tecnológica"], specific:["Investigación - Nivel 3"] },
+  { code:"MV-0808", name:"Etología y Bienestar Animal", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Responsabilidad social", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0809", name:"Sanidad y Producción de Cuyes y Conejos", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0810", name:"Diagnóstico por Imágenes", generic:["Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Investigación - Nivel 3"] },
+  { code:"MV-0811", name:"Clínica Quirúrgica de Animales Mayores", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0812", name:"Sanidad y Producción Acuícola", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0814", name:"Clínica de Animales Silvestres y Exóticos", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Investigación - Nivel 3"] },
+  { code:"MV-0813", name:"Práctica Pre-Profesional III*", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Resolución de problemas", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0908", name:"Sanidad y Producción Avícola", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0909", name:"Salud Pública Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Pública - Nivel 3", "Investigación - Nivel 3"] },
+  { code:"MV-0910", name:"Sanidad y Producción de Porcinos", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0911", name:"Sanidad y Producción de Bovinos", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0912", name:"Sanidad y Producción de Rumiantes Menores", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-0913", name:"Medicina de Animales de Compañía", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Investigación - Nivel 3"] },
+  { code:"MV-0914", name:"Sanidad y Producción de Equinos", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3", "Salud Pública - Nivel 3", "Investigación - Nivel 3", "Producción Animal - Nivel 3"] },
+  { code:"MV-1009", name:"Internado I", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 4", "Salud Pública - Nivel 4", "Investigación - Nivel 4", "Producción Animal - Nivel 4"] },
+  { code:"MV-1010", name:"Internado II", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 4", "Salud Pública - Nivel 4", "Investigación - Nivel 4", "Producción Animal - Nivel 4"] },
+  { code:"MV-1011", name:"Internado III", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 4", "Salud Pública - Nivel 4", "Investigación - Nivel 4", "Producción Animal - Nivel 4"] },
+  { code:"MV-1012", name:"Internado IIII", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Autoaprendizaje", "Responsabilidad social", "Resolución de problemas", "Investigación científica y tecnológica", "Comunicación efectiva"], specific:["Salud Animal - Nivel 4", "Salud Pública - Nivel 4", "Investigación - Nivel 4", "Producción Animal - Nivel 4"] },
+  { code:"Electivos", name:"Acceso a la Información Cientifica", generic:["Responsabilidad social", "Investigación científica y tecnológica"], specific:["Investigación - Nivel 1"] },
+  { code:"Electivos", name:"Cinologia", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Resolución de problemas", "Investigación científica y tecnológica"], specific:["Salud Pública - Nivel 1"] },
+  { code:"Electivos", name:"Anatomia Aplicada", generic:["Comportamiento ético", "Autoaprendizaje", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 1", "Producción Animal - Nivel 1"] },
+  { code:"Electivos", name:"Urgencias Veterinarias", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Liderazgo compartido", "Responsabilidad social", "Comunicación efectiva"], specific:["Salud Animal - Nivel 2"] },
+  { code:"Electivos", name:"Oftalmologia Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Responsabilidad social", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 2"] },
+  { code:"Electivos", name:"Principios Basicos de Cardiologia Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Responsabilidad social", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 2"] },
+  { code:"Electivos", name:"Dermatología Veterinaria", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Responsabilidad social", "Investigación científica y tecnológica"], specific:["Salud Animal - Nivel 2"] },
+  { code:"Electivos", name:"Etologia clinica del Perro y el Gato", generic:["Comportamiento ético", "Pensamiento crítico y creativo", "Autoaprendizaje", "Responsabilidad social", "Comunicación efectiva"], specific:["Salud Animal - Nivel 3"] }
+];
+
+// ─────────────────────────────────────────────
+// PLAN SWITCHER
+// ─────────────────────────────────────────────
+let currentPlan = '24';
+
+// build sumilla index for plan 52
+const sumillaByCode52 = {};
+sumillasData52.forEach(s => {
+  const spaceIdx = s.name.indexOf(' ');
+  if (spaceIdx > -1) {
+    const code = s.name.substring(0, spaceIdx);
+    sumillaByCode52[code] = s.text;
+  }
+});
+
+function switchPlan(plan) {
+  if (plan === currentPlan) return;
+  currentPlan = plan;
+
+  // update button states
+  document.getElementById('btn24').classList.toggle('active', plan === '24');
+  document.getElementById('btn52').classList.toggle('active', plan === '52');
+
+  // update header badge
+  document.querySelector('header p').textContent =
+    plan === '24'
+      ? 'Plan Curricular 2024 · Universidad Ricardo Palma'
+      : 'Plan Curricular 52 · Universidad Ricardo Palma';
+
+  // rebuild select options
+  const activeComp = plan === '24' ? competencias : competencias52;
+  allOpts = activeComp.map(c => ({ value: c.code + '||' + c.name, label: `${c.code} · ${c.name}` }));
+  document.getElementById('searchInput').value = '';
+  renderOptions(allOpts);
+
+  // hide result area
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'block';
+}
+
+</script>
+</body>
+</html>
